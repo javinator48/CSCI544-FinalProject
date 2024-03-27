@@ -73,7 +73,7 @@ def callChatGPT(item, temperature=1.0):
     """
 
     systemPrompt = {
-        "role": "system", "content": """I want you to act as a natural and no-bias ner tagger, label the words in the sentences with the following ner tags: 'O', 'B-PER', 'I-PER', 'B-ORG', 'I-ORG', 'B-LOC', 'I-LOC', 'B-MISC', 'I-MISC'. If a word does not have an tag label it with 'O'. Please expect input sentences from various languages.  """}
+        "role": "system", "content": """I want you to act as a natural and no-bias ner tagger, label the words in the sentences with the following ner tags: 'O', 'B-PER', 'I-PER', 'B-ORG', 'I-ORG', 'B-LOC', 'I-LOC', 'B-MISC', 'I-MISC'. If a word does not have an tag label it with 'O'. Please expect input sentences from various languages and only output the tags in a list format where each element is a tag.  """}
     userPrompt = {"role": "user", "content": item}
     prompt = [systemPrompt, userPrompt]
     promptReAttempts = 0
@@ -113,8 +113,10 @@ def generateTags(csvInputPath,csvOutputPath, numberOfSamples):
     for _, row in tqdm(df.head(numberOfSamples).iterrows(), total = numberOfSamples): 
         
         tokens = row['tokens']
+        
         tags.append(callChatGPT(tokens)) 
-        words.append(row['tokens'])
+        words.append(str(row['tokens']))
+        
         labels.append(row['tags'])
     outputDf = pd.DataFrame({'tags': words, 'predicted_tags': tags,'ground_truth':labels })
     outputDf.to_csv(csvOutputPath, index=False)

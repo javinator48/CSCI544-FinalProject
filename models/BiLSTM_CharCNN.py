@@ -21,7 +21,7 @@ class CharacterCNN(nn.Module):
         return x
 
 
-class BiLSTMNER(nn.Module):
+class BiLSTM_CharCNN(nn.Module):
     def __init__(self, vocab_size, target_size, char_vocab_size, char_embedding_dim=30, char_hidden_dim=30,
                  embedding_dim=100, lstm_hidden_dim=256, lstm_layers=1, lstm_dropout=0.33, linear_dim=128):
         super().__init__()

@@ -23,8 +23,10 @@ python task2.py
 
 The checkpoint will be saved in `save/blstm2.pt`, the dev and test result will be saved in `save/dev2.out` and `save/test2.out`.
 
+## Task 3: LSTM + CRF
+
 ```
-python task3.py LSTM + CRF
+python task3.py 
 ```
 
 The checkpoint will be saved in `save/blstm3.pt`, the dev and test result will be saved in `save/dev3.out` and `save/test3.out`.

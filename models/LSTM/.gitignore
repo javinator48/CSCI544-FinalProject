@@ -1,0 +1,5 @@
+checkpoints
+logs
+lightning_logs
+__pycache__
+

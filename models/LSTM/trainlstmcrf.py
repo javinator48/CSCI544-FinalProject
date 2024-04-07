@@ -12,9 +12,6 @@ from lightning.pytorch.loggers import TensorBoardLogger
 from datasets import load_metric
 from transformers import BertTokenizer, BertModel, BertTokenizerFast
 from torchcrf import CRF
-import os
-os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
-torch.set_float32_matmul_precision("high")
 # Constants
 MODEL_PATH = "/home/hjz/544/CSCI544-FinalProject/data/mBERT/fine"
 TRAIN_DATA_PATH = "/home/hjz/544/CSCI544-FinalProject/data/merge/train.parquet"
@@ -32,7 +29,7 @@ HIDDEN_DIM = 512
 OUTPUT_DIM = 1024
 DROPOUT = 0.33
 LEARNING_RATE = 0.001
-BATCH_SIZE = 32
+BATCH_SIZE = 16
 NUM_EPOCHS = 60
 NUM_LABELS = 10
 
@@ -41,7 +38,7 @@ tokenizer = BertTokenizerFast.from_pretrained(MODEL_PATH)
 bert_model = BertModel.from_pretrained(MODEL_PATH)
 bert_model.eval()
 bert_model.to('cuda:0')
-
+bert_model.requires_grad_(False)
 # Utility functions
 
 
@@ -129,7 +126,8 @@ class NERDataModule(pl.LightningDataModule):
 
 # Model
 
-
+all_true_labels=[]
+all_pred_labels=[]
 class BLSTMModelLightning(pl.LightningModule):
     def __init__(self, embedding_dim, hidden_dim, output_dim, num_labels, dropout):
         super(BLSTMModelLightning, self).__init__()
@@ -169,7 +167,7 @@ class BLSTMModelLightning(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         input_embeddings, labels = batch
         loss = self(input_embeddings, labels)
-        self.log("train_loss", loss, on_step=False,
+        self.log("train_loss", loss, on_step=True,
                  on_epoch=True, prog_bar=True)
         return loss
 
@@ -190,7 +188,6 @@ class BLSTMModelLightning(pl.LightningModule):
             for label, m in zip(label_seq, mask_seq) if m]
             for label_seq, mask_seq in zip(decoded_labels, mask)
         ]
-
         results = seqeval_metric.compute(
             predictions=pred_labels, references=true_labels)
 
@@ -240,14 +237,14 @@ if __name__ == "__main__":
     # Load datasets
     train_dataset = NERDataset(TRAIN_DATA_PATH, tokenizer, bert_model)
     generator1 = torch.Generator().manual_seed(42)
-    train_dataset, _ = random_split(train_dataset, [int(
-        0.1 * len(train_dataset)), len(train_dataset) - int(0.1 * len(train_dataset))],generator=generator1)
+    # train_dataset, _ = random_split(train_dataset, [int(
+    #     0.1 * len(train_dataset)), len(train_dataset) - int(0.1 * len(train_dataset))],generator=generator1)
     val_dataset = NERDataset(VAL_DATA_PATH, tokenizer, bert_model)
-    val_dataset, _ = random_split(val_dataset, [int(
-        0.01 * len(val_dataset)), len(val_dataset) - int(0.01 * len(val_dataset))])
+    # val_dataset, _ = random_split(val_dataset, [int(
+    #     0.01 * len(val_dataset)), len(val_dataset) - int(0.01 * len(val_dataset))])
     test_dataset = NERDataset(TEST_DATA_PATH, tokenizer, bert_model)
-    test_dataset, _ = random_split(test_dataset, [int(
-        0.1 * len(test_dataset)), len(test_dataset) - int(0.1 * len(test_dataset))])
+    # test_dataset, _ = random_split(test_dataset, [int(
+    #     0.1 * len(test_dataset)), len(test_dataset) - int(0.1 * len(test_dataset))])
     # Create data module
     data_module = NERDataModule(
         train_dataset, val_dataset, test_dataset, BATCH_SIZE)
@@ -260,7 +257,7 @@ if __name__ == "__main__":
     logger = TensorBoardLogger("logs/", name="my_model_lstm")
     checkpoint_callback = ModelCheckpoint(
         dirpath="checkpoints",
-        filename="lstm-8000v1",
+        filename="lstm-crf-full",
         save_top_k=3,
         verbose=True,
         monitor="val_seqeval_f1",
@@ -282,7 +279,8 @@ if __name__ == "__main__":
     )
 
     # Train the model
-   # trainer.fit(lstm_model, datamodule=data_module)
+    #trainer.fit(lstm_model, datamodule=data_module)
 
     # Evaluate the model
-    trainer.test(lstm_model, datamodule=data_module, ckpt_path="/home/hjz/544/CSCI544-FinalProject/models/LSTM/checkpoints/lstm-8000v1-v2.ckpt")
+    trainer.test(lstm_model, datamodule=data_module, ckpt_path="/home/hjz/544/CSCI544-FinalProject/models/LSTM/checkpoints/lstm-crf-full-v2.ckpt")
+    #print(seqeval_metric.compute(predictions=all_pred_labels, references=all_true_labels))

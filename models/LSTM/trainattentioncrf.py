@@ -30,7 +30,7 @@ HIDDEN_DIM = 512
 OUTPUT_DIM = 1024
 DROPOUT = 0.33
 LEARNING_RATE = 0.001
-BATCH_SIZE = 32
+BATCH_SIZE = 16
 NUM_EPOCHS = 60
 NUM_LABELS = 10
 
@@ -128,7 +128,7 @@ class NERDataModule(pl.LightningDataModule):
 
 
 class AttentionCRFModel(pl.LightningModule):
-    def __init__(self, embedding_dim, hidden_dim, output_dim, num_labels, dropout, num_attention_layers=5):
+    def __init__(self, embedding_dim, hidden_dim, output_dim, num_labels, dropout, num_attention_layers=2):
         super(AttentionCRFModel, self).__init__()
         self.predictions = []
         self.num_labels = num_labels
@@ -254,11 +254,11 @@ class AttentionCRFModel(pl.LightningModule):
 if __name__ == "__main__":
     # Load datasets
     train_dataset = NERDataset(TRAIN_DATA_PATH, tokenizer, bert_model)
-    train_dataset, _ = random_split(train_dataset, [int(
-        0.1 * len(train_dataset)), len(train_dataset) - int(0.1 * len(train_dataset))])
+    # train_dataset, _ = random_split(train_dataset, [int(
+    #     0.1 * len(train_dataset)), len(train_dataset) - int(0.1 * len(train_dataset))])
     val_dataset = NERDataset(VAL_DATA_PATH, tokenizer, bert_model)
-    val_dataset, _ = random_split(val_dataset, [int(
-        0.1 * len(val_dataset)), len(val_dataset) - int(0.1 * len(val_dataset))])
+    # val_dataset, _ = random_split(val_dataset, [int(
+    #     0.1 * len(val_dataset)), len(val_dataset) - int(0.1 * len(val_dataset))])
     # val_dataset = torch.utils.data.Subset(val_dataset, range(1000))
     test_dataset = NERDataset(TEST_DATA_PATH, tokenizer, bert_model)
     # test_dataset, _ = random_split(test_dataset, [int(
@@ -297,7 +297,7 @@ if __name__ == "__main__":
     )
 
     # Train the model
-    trainer.fit(attention_crf_model, datamodule=data_module,)
+    trainer.fit(attention_crf_model, datamodule=data_module)
 
     # Evaluate the model
     #trainer.test(attention_crf_model, datamodule=data_module, ckpt_path="/home/hjz/544/CSCI544-FinalProject/models/LSTM/checkpoints/lstm-crf-full-v4.ckpt")

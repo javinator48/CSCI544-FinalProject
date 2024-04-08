@@ -12,6 +12,7 @@ from lightning.pytorch.loggers import TensorBoardLogger
 from datasets import load_metric
 from transformers import BertTokenizer, BertModel, BertTokenizerFast
 from torchcrf import CRF
+pl.seed_everything(42,workers=True)
 # Constants
 MODEL_PATH = "/home/hjz/544/CSCI544-FinalProject/data/mBERT/fine"
 TRAIN_DATA_PATH = "/home/hjz/544/CSCI544-FinalProject/data/merge/train.parquet"
@@ -29,7 +30,7 @@ HIDDEN_DIM = 512
 OUTPUT_DIM = 1024
 DROPOUT = 0.33
 LEARNING_RATE = 0.001
-BATCH_SIZE = 16
+BATCH_SIZE = 32
 NUM_EPOCHS = 60
 NUM_LABELS = 10
 
@@ -123,14 +124,13 @@ class NERDataModule(pl.LightningDataModule):
     def test_dataloader(self):
         return DataLoader(self.test_dataset, batch_size=self.batch_size, shuffle=False, collate_fn=collate_fn)
 
-
 # Model
 
-all_true_labels=[]
-all_pred_labels=[]
+
 class BLSTMModelLightning(pl.LightningModule):
     def __init__(self, embedding_dim, hidden_dim, output_dim, num_labels, dropout):
         super(BLSTMModelLightning, self).__init__()
+        self.predictions = []
         self.num_labels = num_labels
         self.criterion = nn.CrossEntropyLoss()
         self.transform_embeddings = nn.Sequential(
@@ -192,8 +192,8 @@ class BLSTMModelLightning(pl.LightningModule):
             predictions=pred_labels, references=true_labels)
 
         self.log("val_seqeval_f1", results['overall_f1'],
-                 on_step=False, on_epoch=True, prog_bar=True)
-        self.log("val_loss", loss, on_step=False, on_epoch=True, prog_bar=True)
+                 on_step=True, on_epoch=True, prog_bar=True)
+        self.log("val_loss", loss, on_step=True, on_epoch=True, prog_bar=True)
 
     def test_step(self, batch, batch_idx):
         input_embeddings, labels = batch
@@ -212,7 +212,7 @@ class BLSTMModelLightning(pl.LightningModule):
             for label, m in zip(label_seq, mask_seq) if m]
             for label_seq, mask_seq in zip(decoded_labels, mask)
         ]
-
+        self.predictions.extend(pred_labels)
         results = seqeval_metric.compute(
             predictions=pred_labels, references=true_labels)
 
@@ -220,7 +220,6 @@ class BLSTMModelLightning(pl.LightningModule):
                  on_epoch=True, prog_bar=True)
         self.log("test_seqeval_f1", results['overall_f1'],
                  on_step=False, on_epoch=True, prog_bar=True)
-
     def configure_optimizers(self):
         return optim.AdamW(self.parameters(), lr=LEARNING_RATE)
 
@@ -230,18 +229,38 @@ class BLSTMModelLightning(pl.LightningModule):
             gradient_clip_val=gradient_clip_val,
             gradient_clip_algorithm=gradient_clip_algorithm
         )
+    def predict_step(self, batch, batch_idx, dataloader_idx=0):
+        input_embeddings, labels = batch
+        decoded_labels = self(input_embeddings)
 
+        mask = labels != WIKINEURAL_TAGS_TO_INT['PAD']
+        pred_labels = [
+            [WIKINEURAL_INT_TO_TAGS[label]
+            for label, m in zip(label_seq, mask_seq) if m]
+            for label_seq, mask_seq in zip(decoded_labels, mask)
+        ]
+
+        # Get the original tokens from the dataset used by the dataloader
+        dataset = self.trainer.predict_dataloaders.dataset
+        sentence_words = dataset.raw_dataset.iloc[batch_idx]['tokens'].tolist()
+
+        # Truncate the tokens if necessary
+        if len(sentence_words) > len(pred_labels[0]):
+            sentence_words = sentence_words[:len(pred_labels[0])]
+
+        return {"tokens": sentence_words, "predictions": pred_labels[0]}
 
 # Main
 if __name__ == "__main__":
     # Load datasets
     train_dataset = NERDataset(TRAIN_DATA_PATH, tokenizer, bert_model)
-    generator1 = torch.Generator().manual_seed(42)
+    # generator1 = torch.Generator().manual_seed(42)
     # train_dataset, _ = random_split(train_dataset, [int(
-    #     0.1 * len(train_dataset)), len(train_dataset) - int(0.1 * len(train_dataset))],generator=generator1)
+    #     0.01 * len(train_dataset)), len(train_dataset) - int(0.01 * len(train_dataset))],generator=generator1)
     val_dataset = NERDataset(VAL_DATA_PATH, tokenizer, bert_model)
     # val_dataset, _ = random_split(val_dataset, [int(
     #     0.01 * len(val_dataset)), len(val_dataset) - int(0.01 * len(val_dataset))])
+    # val_dataset = torch.utils.data.Subset(val_dataset, range(1000))
     test_dataset = NERDataset(TEST_DATA_PATH, tokenizer, bert_model)
     # test_dataset, _ = random_split(test_dataset, [int(
     #     0.1 * len(test_dataset)), len(test_dataset) - int(0.1 * len(test_dataset))])
@@ -275,12 +294,32 @@ if __name__ == "__main__":
         enable_checkpointing=True,
         enable_progress_bar=True,
         logger=logger,
-        gradient_clip_val=1.0
+        gradient_clip_val=1.0,
     )
 
     # Train the model
-    #trainer.fit(lstm_model, datamodule=data_module)
+   # trainer.fit(lstm_model, datamodule=data_module,)
 
     # Evaluate the model
-    trainer.test(lstm_model, datamodule=data_module, ckpt_path="/home/hjz/544/CSCI544-FinalProject/models/LSTM/checkpoints/lstm-crf-full-v2.ckpt")
+    #trainer.test(lstm_model, datamodule=data_module, ckpt_path="/home/hjz/544/CSCI544-FinalProject/models/LSTM/checkpoints/lstm-crf-full-v4.ckpt")
+    
+    
+    
+    # aggregation
+    data_module = NERDataModule(
+        train_dataset, val_dataset, test_dataset, 1)
     #print(seqeval_metric.compute(predictions=all_pred_labels, references=all_true_labels))
+    # current_predictions=trainer.predict(lstm_model, dataloaders=data_module.train_dataloader(), ckpt_path="/home/hjz/544/CSCI544-FinalProject/models/LSTM/checkpoints/lstm-crf-full-final.ckpt")
+    # current_df = pd.DataFrame(current_predictions)
+    # current_df.to_csv("BiLSTM_CRF_train.csv")
+    # Predict on the validation dataset
+    current_predictions = trainer.predict(lstm_model, dataloaders=data_module.val_dataloader(), ckpt_path="/home/hjz/544/CSCI544-FinalProject/models/LSTM/checkpoints/lstm-crf-full-final.ckpt")
+    current_df = pd.DataFrame(current_predictions)
+    current_df.to_csv("BiLSTM_CRF_dev.csv")
+    # Predict on the testing dataset
+    current_predictions = trainer.predict(lstm_model, dataloaders=data_module.test_dataloader(), ckpt_path="/home/hjz/544/CSCI544-FinalProject/models/LSTM/checkpoints/lstm-crf-full-final.ckpt")
+    current_df = pd.DataFrame(current_predictions)
+    current_df.to_csv("BiLSTM_CRF_test.csv")
+    
+    
+    

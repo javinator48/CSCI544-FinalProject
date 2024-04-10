@@ -116,7 +116,7 @@ class NERDataModule(pl.LightningDataModule):
         self.batch_size = batch_size
 
     def train_dataloader(self):
-        return DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True, collate_fn=collate_fn)
+        return DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=False, collate_fn=collate_fn)
 
     def val_dataloader(self):
         return DataLoader(self.val_dataset, batch_size=self.batch_size, shuffle=False, collate_fn=collate_fn)
@@ -297,28 +297,28 @@ if __name__ == "__main__":
     )
 
     # Train the model
-    trainer.fit(attention_crf_model, datamodule=data_module)
+    #trainer.fit(attention_crf_model, datamodule=data_module)
 
     # Evaluate the model
-    #trainer.test(attention_crf_model, datamodule=data_module, ckpt_path="/home/hjz/544/CSCI544-FinalProject/models/LSTM/checkpoints/lstm-crf-full-v4.ckpt")
+    #trainer.test(attention_crf_model, datamodule=data_module, ckpt_path="/home/hjz/544/CSCI544-FinalProject/models/LSTM/checkpoints/attention_crf/attention-crf-8000-v9.ckpt")
     
     
     
-    # # aggregation
-    # data_module = NERDataModule(
-    #     train_dataset, val_dataset, test_dataset, 1)
-    # #print(seqeval_metric.compute(predictions=all_pred_labels, references=all_true_labels))
-    # current_predictions=trainer.predict(attention_crf_model, dataloaders=data_module.train_dataloader(), ckpt_path="/home/hjz/544/CSCI544-FinalProject/models/LSTM/checkpoints/lstm-crf-full-final.ckpt")
-    # current_df = pd.DataFrame(current_predictions)
-    # current_df.to_csv("BiLSTM_CRF_train.csv")
+    # aggregation
+    data_module = NERDataModule(
+        train_dataset, val_dataset, test_dataset, 1)
+    #print(seqeval_metric.compute(predictions=all_pred_labels, references=all_true_labels))
+    current_predictions=trainer.predict(attention_crf_model, dataloaders=data_module.train_dataloader(), ckpt_path="/home/hjz/544/CSCI544-FinalProject/models/LSTM/checkpoints/attention_crf/attention-crf-8000-v9.ckpt")
+    current_df = pd.DataFrame(current_predictions)
+    current_df.to_csv("ATTENTION_CRF_train.csv")
     # # Predict on the validation dataset
-    # current_predictions = trainer.predict(attention_crf_model, dataloaders=data_module.val_dataloader(), ckpt_path="/home/hjz/544/CSCI544-FinalProject/models/LSTM/checkpoints/lstm-crf-full-final.ckpt")
+    # current_predictions = trainer.predict(attention_crf_model, dataloaders=data_module.val_dataloader(), ckpt_path="/home/hjz/544/CSCI544-FinalProject/models/LSTM/checkpoints/attention_crf/attention-crf-8000-v9.ckpt")
     # current_df = pd.DataFrame(current_predictions)
-    # current_df.to_csv("BiLSTM_CRF_dev.csv")
+    # current_df.to_csv("ATTENTION_CRF_dev.csv")
     # # Predict on the testing dataset
-    # current_predictions = trainer.predict(attention_crf_model, dataloaders=data_module.test_dataloader(), ckpt_path="/home/hjz/544/CSCI544-FinalProject/models/LSTM/checkpoints/lstm-crf-full-final.ckpt")
+    # current_predictions = trainer.predict(attention_crf_model, dataloaders=data_module.test_dataloader(), ckpt_path="/home/hjz/544/CSCI544-FinalProject/models/LSTM/checkpoints/attention_crf/attention-crf-8000-v9.ckpt")
     # current_df = pd.DataFrame(current_predictions)
-    # current_df.to_csv("BiLSTM_CRF_test.csv")
+    # current_df.to_csv("ATTENTION_CRF_test.csv")
     
     
     

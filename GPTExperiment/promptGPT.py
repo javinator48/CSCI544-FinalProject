@@ -13,8 +13,8 @@ from tqdm.auto import tqdm
 from openai import OpenAI
 from pandas import read_parquet
 
-# api_key='your_api_key_here'
-api_key = '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'
+api_key='your_api_key_here'
+
 client = OpenAI(api_key=api_key)
 # openai.api_key = 'your_api_key_here'
 

@@ -1,0 +1,130 @@
+[
+    {
+        "file name": "train_english_chatgpt.csv",
+        "number of samples": 88,
+        "LOC": {
+            "precision": 0.3283582089552239,
+            "recall": 0.6111111111111112,
+            "f1": 0.4271844660194175,
+            "number": 36
+        },
+        "MISC": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "number": 0
+        },
+        "ORG": {
+            "precision": 0.4230769230769231,
+            "recall": 0.25,
+            "f1": 0.3142857142857143,
+            "number": 44
+        },
+        "PER": {
+            "precision": 0.6571428571428571,
+            "recall": 0.71875,
+            "f1": 0.6865671641791045,
+            "number": 32
+        },
+        "overall_precision": 0.4148148148148148,
+        "overall_recall": 0.5,
+        "overall_f1": 0.4534412955465587,
+        "overall_accuracy": 0.7232
+    },
+    {
+        "file name": "train_french_chatgpt.csv",
+        "number of samples": 94,
+        "LOC": {
+            "precision": 0.23943661971830985,
+            "recall": 0.3269230769230769,
+            "f1": 0.2764227642276423,
+            "number": 52
+        },
+        "MISC": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "number": 0
+        },
+        "ORG": {
+            "precision": 0.23255813953488372,
+            "recall": 0.2564102564102564,
+            "f1": 0.24390243902439024,
+            "number": 39
+        },
+        "PER": {
+            "precision": 0.5106382978723404,
+            "recall": 0.7272727272727273,
+            "f1": 0.5999999999999999,
+            "number": 33
+        },
+        "overall_precision": 0.2947976878612717,
+        "overall_recall": 0.4112903225806452,
+        "overall_f1": 0.3434343434343434,
+        "overall_accuracy": 0.6283987915407855
+    },
+    {
+        "file name": "train_japanese_chatgpt.csv",
+        "number of samples": 61,
+        "LOC": {
+            "precision": 0.2682926829268293,
+            "recall": 0.4782608695652174,
+            "f1": 0.34375000000000006,
+            "number": 23
+        },
+        "MISC": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "number": 0
+        },
+        "ORG": {
+            "precision": 0.4,
+            "recall": 0.24,
+            "f1": 0.3,
+            "number": 25
+        },
+        "PER": {
+            "precision": 0.3076923076923077,
+            "recall": 0.631578947368421,
+            "f1": 0.41379310344827586,
+            "number": 19
+        },
+        "overall_precision": 0.29292929292929293,
+        "overall_recall": 0.43283582089552236,
+        "overall_f1": 0.3493975903614457,
+        "overall_accuracy": 0.6572528883183568
+    },
+    {
+        "file name": "train_spanish_chatgpt.csv",
+        "number of samples": 94,
+        "LOC": {
+            "precision": 0.3188405797101449,
+            "recall": 0.5238095238095238,
+            "f1": 0.39639639639639634,
+            "number": 42
+        },
+        "MISC": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "number": 0
+        },
+        "ORG": {
+            "precision": 0.3235294117647059,
+            "recall": 0.3142857142857143,
+            "f1": 0.31884057971014496,
+            "number": 35
+        },
+        "PER": {
+            "precision": 0.5714285714285714,
+            "recall": 0.7567567567567568,
+            "f1": 0.6511627906976745,
+            "number": 37
+        },
+        "overall_precision": 0.391025641025641,
+        "overall_recall": 0.5350877192982456,
+        "overall_f1": 0.4518518518518518,
+        "overall_accuracy": 0.6943942133815552
+    }
+]
